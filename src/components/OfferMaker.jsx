@@ -42,109 +42,6 @@ export default class OfferMaker extends React.Component {
         if (this.props.d.orderbook.data.ready) {
             this.state = Object.assign(this.state, this.initialize());
         }
-
-        // TODO: Limit the number of digits after the decimal that can be input
-        this.updateState = (item, value) => {
-            const state = Object.assign(this.state, {
-                // Reset messages
-                successMessage: '',
-                errorMessage: false,
-            });
-            state.valid = false;
-            if (item === 'price') {
-                state.price = value;
-            } else if (item === 'amount') {
-                state.amount = value;
-            } else if (item === 'total') {
-                state.total = value;
-            } else {
-                throw new Error('Invalid item type');
-            }
-
-            try {
-                // If there is an error, we will just let the user input change but not the affected inputs
-                if (item === 'price') {
-                    state.total = new BigNumber(
-                        new BigNumber(value).times(new BigNumber(state.amount)).toFixed(7),
-                    ).toString();
-                } else if (item === 'amount') {
-                    state.total = new BigNumber(
-                        new BigNumber(value).times(new BigNumber(state.price)).toFixed(7),
-                    ).toString();
-                } else if (item === 'total') {
-                    state.amount = new BigNumber(
-                        new BigNumber(value).dividedBy(new BigNumber(state.price)).toFixed(7),
-                    ).toString();
-                } else {
-                    throw new Error('Invalid item type');
-                }
-
-                // TODO: truer valid
-                state.valid = true;
-            } catch (e) {
-                // Invalid input somewhere
-            }
-            this.setState(state);
-        };
-
-        this.handleSubmit = (e) => {
-            // TODO: Hook up with driver
-            e.preventDefault();
-            props.d.session.handlers
-                .createOffer(props.side, {
-                    price: this.state.price,
-                    amount: this.state.amount,
-                    total: this.state.total,
-                })
-                .then((signAndSubmitResult) => {
-                    if (signAndSubmitResult.status === 'finish') {
-                        this.setState({
-                            valid: false,
-                            buttonState: 'pending',
-                            amount: '',
-                            total: '',
-                            successMessage: '',
-                            errorMessage: false,
-                        });
-
-                        signAndSubmitResult.serverResult
-                            .then(() => {
-                                this.setState({
-                                    buttonState: 'ready',
-                                    successMessage: 'Offer successfully created',
-                                });
-                            })
-                            .catch((result) => {
-                                let errorType;
-                                try {
-                                    if (result.data === undefined) {
-                                        errorType = `clientError - ${result.message}`;
-                                    } else if (result.data && result.data.extras) {
-                                        if (result.data.extras.result_codes.operations === undefined) {
-                                            errorType = result.data.extras.result_codes.transaction;
-                                        } else {
-                                            // Common errors:
-                                            // errorType = 'buy_not_authorized'
-                                            // errorType = 'op_low_reserve'
-                                            errorType = result.data.extras.result_codes.operations[0];
-                                        }
-                                    } else {
-                                        errorType = `unknownResponse - ${e.message}`;
-                                    }
-                                } catch (error) {
-                                    console.error(error);
-                                    errorType = `unknownResponse - ${e.message}`;
-                                }
-
-                                this.setState({
-                                    buttonState: 'ready',
-                                    errorMessage: true,
-                                    errorType,
-                                });
-                            });
-                    }
-                });
-        };
     }
 
     componentWillUnmount() {
@@ -173,114 +70,180 @@ export default class OfferMaker extends React.Component {
         }
         return {};
     }
+
+    // TODO: Limit the number of digits after the decimal that can be input
+    updateState(item, value) {
+        const state = Object.assign(this.state, {
+            // Reset messages
+            successMessage: '',
+            errorMessage: false,
+        });
+        state.valid = false;
+        if (item === 'price' || item === 'amount' || item === 'total') {
+            state[item] = value;
+        } else {
+            throw new Error('Invalid item type');
+        }
+
+        try {
+          // If there is an error, we will just let the user input change but not the affected inputs
+            if (item === 'price' || item === 'amount') {
+                const changeValueType = item === 'price' ? 'amount' : 'price';
+                state.total = new BigNumber(
+                    new BigNumber(value).times(new BigNumber(state[changeValueType])).toFixed(7),
+                ).toString();
+            } else if (item === 'total') {
+                state.amount = new BigNumber(
+                    new BigNumber(value).dividedBy(new BigNumber(state.price)).toFixed(7),
+                ).toString();
+            } else {
+                throw new Error('Invalid item type');
+            }
+
+            // TODO: truer valid
+            state.valid = true;
+        } catch (e) {
+            // Invalid input somewhere
+        }
+        this.setState(state);
+    }
+
+    handleSubmit(e) {
+        // TODO: Hook up with driver
+        e.preventDefault();
+        this.props.d.session.handlers
+            .createOffer(this.props.side, {
+                price: this.state.price,
+                amount: this.state.amount,
+                total: this.state.total,
+            })
+            .then((signAndSubmitResult) => {
+                if (signAndSubmitResult.status === 'finish') {
+                    this.setState({
+                        valid: false,
+                        buttonState: 'pending',
+                        amount: '',
+                        total: '',
+                        successMessage: '',
+                        errorMessage: false,
+                    });
+
+                    signAndSubmitResult.serverResult
+                        .then(() => {
+                            this.setState({
+                                buttonState: 'ready',
+                                successMessage: 'Offer successfully created',
+                            });
+                        })
+                        .catch((result) => {
+                            let errorType;
+                            try {
+                                if (result.data === undefined) {
+                                    errorType = `clientError - ${result.message}`;
+                                } else if (result.data && result.data.extras) {
+                                    if (result.data.extras.result_codes.operations === undefined) {
+                                        errorType = result.data.extras.result_codes.transaction;
+                                    } else {
+                                        // Common errors:
+                                        // errorType = 'buy_not_authorized'
+                                        // errorType = 'op_low_reserve'
+                                        errorType = result.data.extras.result_codes.operations[0];
+                                    }
+                                } else {
+                                    errorType = `unknownResponse - ${e.message}`;
+                                }
+                            } catch (error) {
+                                console.error(error);
+                                errorType = `unknownResponse - ${e.message}`;
+                            }
+
+                            this.setState({
+                                buttonState: 'ready',
+                                errorMessage: true,
+                                errorType,
+                            });
+                        });
+                }
+            });
+    }
+
     render() {
         if (!this.props.d.orderbook.data.ready) {
             return <div>Loading</div>;
         }
 
-        let capitalizedSide = 'Buy';
-        if (this.props.side === 'sell') {
-            capitalizedSide = 'Sell';
-        }
+        const isBuy = this.props.side === 'buy';
+        const login = this.props.d.session.state === 'in';
+        const { baseBuying, counterSelling } = this.props.d.orderbook.data;
 
-        const baseAssetName = this.props.d.orderbook.data.baseBuying.getCode();
-        const counterAssetName = this.props.d.orderbook.data.counterSelling.getCode();
-
-        let title;
-        if (this.props.side === 'buy') {
-            title = `Buy ${baseAssetName} using ${counterAssetName}`;
-        } else {
-            title = `Sell ${baseAssetName} for ${counterAssetName}`;
-        }
+        const capitalizedSide = isBuy ? 'Buy' : 'Sell';
+        const baseAssetName = baseBuying.getCode();
+        const counterAssetName = counterSelling.getCode();
+        const title = isBuy ?
+            `Buy ${baseAssetName} using ${counterAssetName}` :
+            `Sell ${baseAssetName} for ${counterAssetName}`;
 
         let youHave;
-        let hasAllTrust = false;
+
         let insufficientBalanceMessage;
         const trustNeededAssets = [];
 
-        if (this.props.d.session.state === 'in') {
-            const baseBalance = this.props.d.session.account.getBalance(this.props.d.orderbook.data.baseBuying);
-            const counterBalance = this.props.d.session.account.getBalance(this.props.d.orderbook.data.counterSelling);
+        if (login) {
+            const baseBalance = this.props.d.session.account.getBalance(baseBuying);
+            const counterBalance = this.props.d.session.account.getBalance(counterSelling);
 
             if (baseBalance === null) {
-                trustNeededAssets.push(this.props.d.orderbook.data.baseBuying);
+                trustNeededAssets.push(baseBuying);
             }
             if (counterBalance === null) {
-                trustNeededAssets.push(this.props.d.orderbook.data.counterSelling);
+                trustNeededAssets.push(counterSelling);
             }
 
-            if (baseBalance !== null && counterBalance !== null) {
-                hasAllTrust = true;
-            }
-            const targetBalance = this.props.side === 'buy' ? counterBalance : baseBalance;
-            const targetAsset =
-                this.props.side === 'buy'
-                    ? this.props.d.orderbook.data.counterSelling
-                    : this.props.d.orderbook.data.baseBuying;
+            const targetBalance = isBuy ? counterBalance : baseBalance;
+            const targetAsset = isBuy ? counterSelling : baseBuying;
 
             const reservedBalance = this.props.d.session.account.getReservedBalance(targetAsset);
 
-            if (targetBalance) {
-                const inputSpendAmount = this.props.side === 'buy' ? this.state.total : this.state.amount;
-                let maxOffer = targetBalance - reservedBalance;
-                if (targetAsset.isNative()) {
-                    const maxLumenSpend = this.props.d.session.account.maxLumenSpend();
-                    maxOffer = (maxLumenSpend > reservedBalance) ? maxLumenSpend - reservedBalance : 0;
 
-                    youHave = (
-                        <div className="OfferMaker__youHave">
-                            You may trade up to {maxOffer} XLM (due to{' '}
-                            <a href="#account">minimum balance requirements</a>).
-                        </div>
+            const inputSpendAmount = isBuy ? this.state.total : this.state.amount;
+            let maxOffer = targetBalance - reservedBalance;
+            if (targetAsset.isNative()) {
+                const maxLumenSpend = this.props.d.session.account.maxLumenSpend();
+                maxOffer = (maxLumenSpend > reservedBalance) ? maxLumenSpend - reservedBalance : 0;
+
+                youHave = (
+                    <div className="OfferMaker__youHave">
+                        You may trade up to {maxOffer} XLM (due to{' '}
+                        <a href="#account">minimum balance requirements</a>).
+                    </div>
                     );
-                } else {
-                    youHave = (
-                        <div className="OfferMaker__youHave">
-                            You have {maxOffer} {targetAsset.getCode()}
-                        </div>
-                    );
-                }
-                if (Number(inputSpendAmount) > Number(maxOffer)) {
-                    insufficientBalanceMessage = (
-                        <p className="OfferMaker__insufficientBalance">
-                            Error: You do not have enough {targetAsset.getCode()} to create this offer.
-                        </p>
-                    );
-                }
             } else {
                 youHave = (
-                    <div>
-                        <p className="OfferMaker__youHave">
-                            Must <a href="#account/addTrust">accept the asset {targetAsset.getCode()}</a> to trade
-                        </p>
+                    <div className="OfferMaker__youHave">
+                        You have {maxOffer} {targetAsset.getCode()}
                     </div>
+                    );
+            }
+            if (Number(inputSpendAmount) > Number(maxOffer)) {
+                insufficientBalanceMessage = (
+                    <p className="OfferMaker__insufficientBalance">
+                        Error: You do not have enough {targetAsset.getCode()} to create this offer.
+                    </p>
                 );
             }
         }
 
         let submit;
-        let acccept;
-        if (this.props.d.session.state === 'in') {
+
+        if (login) {
             if (this.state.buttonState === 'ready') {
-                if (hasAllTrust) {
-                    submit = (
-                        <input
-                            type="submit"
-                            className="s-button"
-                            value={`${capitalizedSide} ${baseAssetName}`}
-                            disabled={!this.state.valid || insufficientBalanceMessage} />
-                    );
-                } else {
-                    submit = (
-                        <input type="submit" className="s-button" value="Action required: accept asset" disabled />
-                    );
-                    acccept = (
-                        <div>
-                            To fix this issue, go to the{' '}
-                            <a href="#account/addTrust">account page and accept the assetts</a> in this orderbook.
-                        </div>
-                    );
-                }
+                submit = (
+                    <input
+                        type="submit"
+                        className="s-button"
+                        value={`${capitalizedSide} ${baseAssetName}`}
+                        disabled={!this.state.valid || insufficientBalanceMessage} />
+                );
             } else {
                 submit = <input type="submit" className="s-button" disabled value="Creating offer..." />;
             }
@@ -294,7 +257,7 @@ export default class OfferMaker extends React.Component {
 
         let summary;
         if (this.state.valid) {
-            if (this.props.side === 'buy') {
+            if (isBuy) {
                 summary = (
                     <div className="s-alert s-alert--info">
                         Buy {this.state.amount} {this.constructor.capDigits(baseAssetName)} for{' '}
@@ -371,7 +334,7 @@ export default class OfferMaker extends React.Component {
 
         let overview;
 
-        if (this.props.d.session.state === 'in' && !hasAllTrust) {
+        if (login && trustNeededAssets.length) {
             overview = (
                 <div>
                     <p className="OfferMaker__enable">To trade, activate these assets on your account:</p>
@@ -396,7 +359,6 @@ export default class OfferMaker extends React.Component {
                     {error}
                     {success}
                     {submit}
-                    {acccept}
                 </div>
             );
         }
@@ -404,7 +366,7 @@ export default class OfferMaker extends React.Component {
         return (
             <div>
                 <h3 className="island__sub__division__title island__sub__division__title--left">{title}</h3>
-                <form onSubmit={this.handleSubmit} disabled={!this.state.valid || this.state.buttonState === 'pending'}>
+                <form onSubmit={this.handleSubmit}>
                     <table className="OfferMaker__table">
                         <tbody>
                             <tr className="OfferMaker__table__row">
