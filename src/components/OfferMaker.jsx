@@ -167,6 +167,26 @@ export default class OfferMaker extends React.Component {
             });
     }
 
+    renderTableRow(inputType, assetName) {
+        return (
+            <tr className="OfferMaker__table__row">
+                <td className="OfferMaker__table__label">{inputType}</td>
+                <td className="OfferMaker__table__input">
+                    <label className="OfferMaker__table__input__group" htmlFor={inputType}>
+                        <input
+                            type="text"
+                            name={inputType}
+                            className="OfferMaker__table__input__input"
+                            value={this.state[inputType]}
+                            onChange={e => this.updateState(inputType, e.target.value)}
+                            placeholder="" />
+                        <div className="OfferMaker__table__input__group__tag">{assetName}</div>
+                    </label>
+                </td>
+            </tr>
+        );
+    }
+
     render() {
         if (!this.props.d.orderbook.data.ready) {
             return <div>Loading</div>;
@@ -369,51 +389,9 @@ export default class OfferMaker extends React.Component {
                 <form onSubmit={this.handleSubmit}>
                     <table className="OfferMaker__table">
                         <tbody>
-                            <tr className="OfferMaker__table__row">
-                                <td className="OfferMaker__table__label">Price</td>
-                                <td className="OfferMaker__table__input">
-                                    <label className="OfferMaker__table__input__group" htmlFor="inputPriceAsset">
-                                        <input
-                                            type="text"
-                                            name="inputPriceAsset"
-                                            className="OfferMaker__table__input__input"
-                                            value={this.state.price}
-                                            onChange={e => this.updateState('price', e.target.value)}
-                                            placeholder="" />
-                                        <div className="OfferMaker__table__input__group__tag">{counterAssetName}</div>
-                                    </label>
-                                </td>
-                            </tr>
-                            <tr className="OfferMaker__table__row">
-                                <td className="OfferMaker__table__label">Amount</td>
-                                <td className="OfferMaker__table__input">
-                                    <label className="OfferMaker__table__input__group" htmlFor="inputAmountAsset">
-                                        <input
-                                            type="text"
-                                            name="inputAmountAssset"
-                                            className="OfferMaker__table__input__input"
-                                            value={this.state.amount}
-                                            onChange={e => this.updateState('amount', e.target.value)}
-                                            placeholder="" />
-                                        <div className="OfferMaker__table__input__group__tag">{baseAssetName}</div>
-                                    </label>
-                                </td>
-                            </tr>
-                            <tr className="OfferMaker__table__row">
-                                <td className="OfferMaker__table__label">Total</td>
-                                <td className="OfferMaker__table__input">
-                                    <label className="OfferMaker__table__input__group" htmlFor="inputTotalAsset">
-                                        <input
-                                            type="text"
-                                            name="inputTotalAsset"
-                                            className="OfferMaker__table__input__input"
-                                            value={this.state.total}
-                                            onChange={e => this.updateState('total', e.target.value)}
-                                            placeholder="" />
-                                        <div className="OfferMaker__table__input__group__tag">{counterAssetName}</div>
-                                    </label>
-                                </td>
-                            </tr>
+                            {this.renderTableRow('price', counterAssetName)}
+                            {this.renderTableRow('amount', baseAssetName)}
+                            {this.renderTableRow('total', counterAssetName)}
                         </tbody>
                     </table>
                     {overview}
