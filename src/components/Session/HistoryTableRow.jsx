@@ -33,7 +33,6 @@ import PropTypes from 'prop-types';
 import Printify from '../../lib/Printify';
 import AssetCard2 from '../AssetCard2';
 import directory from '../../directory';
-import MagicSpoon from '../../lib/MagicSpoon';
 
 export default function HistoryTableRow(props) {
     const { data, type } = props;
@@ -42,13 +41,13 @@ export default function HistoryTableRow(props) {
     let clearFlags;
     let action;
 
-  console.log(data);
     switch (type) {
         // Case 1 ACCOUNT
     case 'account':
         switch (data.category) {
                 // Case 1.1 CREATED
                 // Returns a component with the starting balance and the funding public key.
+
         case 'account_created':
             details = {
                 title: 'Account Created',
@@ -64,6 +63,17 @@ export default function HistoryTableRow(props) {
                     {
                         header: 'FUNDED BY: ',
                         value: data.funder,
+                    },
+                ],
+            };
+            break;
+        case 'account_inflation_destination_updated':
+            details = {
+                title: 'Inflation updated',
+                attributes: [
+                    {
+                        header: 'INFLATION DEST: ',
+                        value: data.inflation_dest,
                     },
                 ],
             };
