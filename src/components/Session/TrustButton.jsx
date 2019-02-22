@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-
+import Ellipsis from '../Ellipsis';
 import Driver from '../../lib/Driver';
 
 export default class TrustButton extends React.Component {
@@ -55,7 +55,8 @@ export default class TrustButton extends React.Component {
     renderPendingButton() {
         return (
             <button className="s-button" disabled onClick={event => this.handleSubmitTrust(event)}>
-                Accepting asset {this.props.asset.getCode()}...
+                Accepting asset {this.props.asset.getCode()}
+                <Ellipsis />
             </button>
         );
     }
