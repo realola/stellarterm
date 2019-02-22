@@ -109,7 +109,7 @@ export default class TrustButton extends React.Component {
             button = this.renderAcceptButton();
         }
 
-        return <div className="row__shareOption">{button}</div>;
+        return this.props.noButtonRow ? button : <div className="row__shareOption">{button}</div>;
     }
 }
 
@@ -118,4 +118,5 @@ TrustButton.propTypes = {
     asset: PropTypes.instanceOf(StellarSdk.Asset).isRequired,
     message: PropTypes.string.isRequired,
     trustMessage: PropTypes.string.isRequired,
+    noButtonRow: PropTypes.bool,
 };
