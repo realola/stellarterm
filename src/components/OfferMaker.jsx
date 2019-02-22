@@ -108,11 +108,11 @@ export default class OfferMaker extends React.Component {
         this.setState(state);
     }
 
-    handleSubmit(e) {
+    handleSubmit(e, props) {
         // TODO: Hook up with driver
         e.preventDefault();
-        this.props.d.session.handlers
-            .createOffer(this.props.side, {
+        props.d.session.handlers
+            .createOffer(props.side, {
                 price: this.state.price,
                 amount: this.state.amount,
                 total: this.state.total,
@@ -204,13 +204,16 @@ export default class OfferMaker extends React.Component {
             `Sell ${baseAssetName} for ${counterAssetName}`;
 
         let youHave;
-
         let insufficientBalanceMessage;
         const trustNeededAssets = [];
 
         if (login) {
-            const baseBalance = this.props.d.session.account.getBalance(baseBuying);
-            const counterBalance = this.props.d.session.account.getBalance(counterSelling);
+            const maxLumenSpend = this.props.d.session.account.maxLumenSpend();
+
+            const baseBalance = baseBuying.isNative() ?
+                maxLumenSpend : this.props.d.session.account.getBalance(baseBuying);
+            const counterBalance = counterSelling.isNative() ?
+                maxLumenSpend : this.props.d.session.account.getBalance(counterSelling);
 
             if (baseBalance === null) {
                 trustNeededAssets.push(baseBuying);
@@ -219,31 +222,25 @@ export default class OfferMaker extends React.Component {
                 trustNeededAssets.push(counterSelling);
             }
 
-            const targetBalance = isBuy ? counterBalance : baseBalance;
+
             const targetAsset = isBuy ? counterSelling : baseBuying;
+            const targetBalance = isBuy ? counterBalance : baseBalance;
 
             const reservedBalance = this.props.d.session.account.getReservedBalance(targetAsset);
+            const maxOffer = (targetBalance > reservedBalance) ? targetBalance - reservedBalance : 0;
 
+            youHave = (
+                <div className="OfferMaker__youHave">
+                    {targetAsset.isNative() ?
+                        (<span>You may trade up to {maxOffer} XLM (due to <a href="#account">
+                          minimum balance requirements</a>.)</span>) :
+                        (`You have ${maxOffer} ${targetAsset.getCode()}`)
+                    }
+                </div>
+            );
 
             const inputSpendAmount = isBuy ? this.state.total : this.state.amount;
-            let maxOffer = targetBalance - reservedBalance;
-            if (targetAsset.isNative()) {
-                const maxLumenSpend = this.props.d.session.account.maxLumenSpend();
-                maxOffer = (maxLumenSpend > reservedBalance) ? maxLumenSpend - reservedBalance : 0;
 
-                youHave = (
-                    <div className="OfferMaker__youHave">
-                        You may trade up to {maxOffer} XLM (due to{' '}
-                        <a href="#account">minimum balance requirements</a>).
-                    </div>
-                    );
-            } else {
-                youHave = (
-                    <div className="OfferMaker__youHave">
-                        You have {maxOffer} {targetAsset.getCode()}
-                    </div>
-                    );
-            }
             if (Number(inputSpendAmount) > Number(maxOffer)) {
                 insufficientBalanceMessage = (
                     <p className="OfferMaker__insufficientBalance">
@@ -253,50 +250,31 @@ export default class OfferMaker extends React.Component {
             }
         }
 
-        let submit;
+        const isButtonReady = this.state.buttonState === 'ready';
 
-        if (login) {
-            if (this.state.buttonState === 'ready') {
-                submit = (
-                    <input
-                        type="submit"
-                        className="s-button"
-                        value={`${capitalizedSide} ${baseAssetName}`}
-                        disabled={!this.state.valid || insufficientBalanceMessage} />
-                );
-            } else {
-                submit = <input type="submit" className="s-button" disabled value="Creating offer..." />;
-            }
-        } else {
-            submit = (
-                <span className="OfferMaker__message">
-                    <a href="#account">Log in</a> to create an offer
-                </span>
-            );
-        }
+        const submit = login ?
+            (<input
+                type="submit"
+                className="s-button"
+                value={isButtonReady ? `${capitalizedSide} ${baseAssetName}` : 'Creating offer...'}
+                disabled={!this.state.valid || insufficientBalanceMessage || !isButtonReady} />) :
+            (<span className="OfferMaker__message">
+                <a href="#account">Log in</a> to create an offer
+            </span>);
 
-        let summary;
-        if (this.state.valid) {
-            if (isBuy) {
-                summary = (
-                    <div className="s-alert s-alert--info">
-                        Buy {this.state.amount} {this.constructor.capDigits(baseAssetName)} for{' '}
-                        {this.constructor.capDigits(this.state.total)} {counterAssetName}
-                    </div>
-                );
-            } else {
-                summary = (
-                    <div className="s-alert s-alert--info">
-                        Sell {this.state.amount} {this.constructor.capDigits(baseAssetName)} for{' '}
-                        {this.constructor.capDigits(this.state.total)} {counterAssetName}
-                    </div>
-                );
-            }
-        }
+
+        const summary = this.state.valid && (
+            <div className="s-alert s-alert--info">
+                {capitalizedSide} {this.state.amount} {this.constructor.capDigits(baseAssetName)} for{' '}
+                {this.constructor.capDigits(this.state.total)} {counterAssetName}
+            </div>
+        );
+
 
         let error;
         if (this.state.errorMessage) {
-            if (this.state.errorType === 'buy_not_authorized') {
+            switch (this.state.errorType) {
+            case 'buy_not_authorized':
                 error = (
                     <div className="s-alert s-alert--alert OfferMaker__message">
                         Unable to create offer because the issuer has not authorized you to trade this asset. To fix
@@ -306,7 +284,8 @@ export default class OfferMaker extends React.Component {
                         NOTE: Some issuers are restrictive in who they authorize.
                     </div>
                 );
-            } else if (this.state.errorType === 'op_low_reserve') {
+                break;
+            case 'op_low_reserve':
                 error = (
                     <div className="s-alert s-alert--alert OfferMaker__message">
                         Your account does not have enough XLM to meet the{' '}
@@ -329,13 +308,15 @@ export default class OfferMaker extends React.Component {
                         </ul>
                     </div>
                 );
-            } else if (this.state.errorType === 'tx_bad_seq') {
+                break;
+            case 'tx_bad_seq':
                 error = (
                     <div className="s-alert s-alert--alert OfferMaker__message">
                         Transaction failed because sequence got out of sync. Please reload StellarTerm and try again.
                     </div>
                 );
-            } else {
+                break;
+            default:
                 error = (
                     <div className="s-alert s-alert--alert OfferMaker__message">
                         Failed to create offer.
@@ -347,46 +328,38 @@ export default class OfferMaker extends React.Component {
             }
         }
 
-        let success;
-        if (this.state.successMessage !== '') {
-            success = <div className="s-alert s-alert--success OfferMaker__message">{this.state.successMessage}</div>;
-        }
+        const success = this.state.successMessage && (
+            <div className="s-alert s-alert--success OfferMaker__message">{this.state.successMessage}</div>
+        );
 
-        let overview;
+        const overview = trustNeededAssets.length ?
+            (<div>
+                 <p className="OfferMaker__enable">To trade, activate these assets on your account:</p>
+                 <div className="row__multipleButtons">
+                     {trustNeededAssets.map(asset => (
+                         <TrustButton
+                             key={`${asset.getCode()}-${asset.getIssuer()}`}
+                             d={this.props.d}
+                             asset={asset}
+                             message={`${asset.getCode()} accepted`}
+                             trustMessage={`Accept ${asset.getCode()}`} />
+                     ))}
+                 </div>
+            </div>) :
+            (<div className="OfferMaker__overview">
+                {youHave}
+                {insufficientBalanceMessage}
+                {summary}
+                {error}
+                {success}
+                {submit}
+            </div>);
 
-        if (login && trustNeededAssets.length) {
-            overview = (
-                <div>
-                    <p className="OfferMaker__enable">To trade, activate these assets on your account:</p>
-                    <div className="row__multipleButtons">
-                        {trustNeededAssets.map(asset => (
-                            <TrustButton
-                                key={`${asset.getCode()}-${asset.getIssuer()}`}
-                                d={this.props.d}
-                                asset={asset}
-                                message={`${asset.getCode()} accepted`}
-                                trustMessage={`Accept ${asset.getCode()}`} />
-                        ))}
-                    </div>
-                </div>
-            );
-        } else {
-            overview = (
-                <div className="OfferMaker__overview">
-                    {youHave}
-                    {insufficientBalanceMessage}
-                    {summary}
-                    {error}
-                    {success}
-                    {submit}
-                </div>
-            );
-        }
 
         return (
             <div>
                 <h3 className="island__sub__division__title island__sub__division__title--left">{title}</h3>
-                <form onSubmit={this.handleSubmit}>
+                <form onSubmit={e => this.handleSubmit(e, this.props)}>
                     <table className="OfferMaker__table">
                         <tbody>
                             {this.renderTableRow('price', counterAssetName)}
