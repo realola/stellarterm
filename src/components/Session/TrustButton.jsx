@@ -109,6 +109,7 @@ export default class TrustButton extends React.Component {
             button = this.renderAcceptButton();
         }
 
+        // todo: try to do this with css?
         return this.props.noButtonRow ? button : <div className="row__shareOption">{button}</div>;
     }
 }

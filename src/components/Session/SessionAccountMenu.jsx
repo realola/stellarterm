@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import Driver from '../../lib/Driver';
 
 export default function SessionAccountMenu(props) {
+    // todo: move is-current check to method + logout also.
     return (
         <div className="subNavBackClipper">
             <div className="so-back subNavBack">

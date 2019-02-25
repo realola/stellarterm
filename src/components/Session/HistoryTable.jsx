@@ -9,12 +9,14 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import HistoryTableRow from './HistoryTableRow';
 import Loading from '../Loading';
+// todo: refactor lib/Format
 import { niceDate } from '../../lib/Format';
 import Driver from '../../lib/Driver';
 
 export default class HistoryTable extends React.Component {
     render() {
         const spoonHistory = this.props.d.history.spoonHistory;
+        // todo: isNoHistory --> historyNotLoaded
         const isNoHistory = spoonHistory === null;
 
         if (isNoHistory) {
@@ -24,12 +26,16 @@ export default class HistoryTable extends React.Component {
         const totalRecords = spoonHistory.records.length;
         let loadedRecords = 0;
 
+        // todo: move getting historyRows() to separate method, get rid of loadedRecords
         const historyRows = spoonHistory.records.map((record) => {
             const details = spoonHistory.details[record.id];
+            // todo: improve filters check
             const detailsIsUndefined = details === undefined || !this.props.filters[record.type.split('_')[0]];
+            // todo: linter fix
             if (detailsIsUndefined) return null;
 
             const effectType = details.category.split('_')[0];
+            // todo: destruct niceDateObj
             const niceDateObj = niceDate(details.created_at);
             loadedRecords += 1;
 

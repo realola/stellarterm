@@ -1,6 +1,7 @@
 import Debounce from 'awesome-debounce-promise';
 import React from 'react';
 import PropTypes from 'prop-types';
+// todo: linter error
 import _ from 'lodash';
 import AddTrustRow from './AddTrustRow';
 import Stellarify from '../../lib/Stellarify';

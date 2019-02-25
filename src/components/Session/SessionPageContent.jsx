@@ -12,6 +12,7 @@ import SessionAddTrust from './SessionAddTrust';
 
 export default function SessionPageContent(props) {
     const d = props.d;
+    // todo: change in props: urlParts[1] --> route
     const urlActionPart = props.urlParts[1];
     let content;
 
@@ -56,6 +57,7 @@ export default function SessionPageContent(props) {
         break;
     }
 
+    // todo: can we change div to parts?
     return (
         <div>
             <SessionAccountMenu d={d} />

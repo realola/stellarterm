@@ -53,6 +53,7 @@ export default class ManuallyAddTrust extends React.Component {
 
         const asset = new StellarSdk.Asset(trustCode, trustIssuer);
 
+        // todo: we need to show button if asset accepted, not text
         return (
             <React.Fragment>
                 <div className="island__separator" />

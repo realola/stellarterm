@@ -7,6 +7,7 @@ import MinBalanceDescription from './MinBalanceDescription';
 export default function MinBalance(props) {
     const explanation = props.d.session.account.explainReserve();
 
+    // todo: destruct item, use entryType as key
     const minBalanceRows = _.map(explanation.items, (item, index) => (
         <tr key={index}>
             <td className="MinBalance__table__type">{item.entryType}</td>
@@ -15,6 +16,7 @@ export default function MinBalance(props) {
         </tr>
     ));
 
+    // todo: move to return?
     minBalanceRows.push(
         <tr key={-1} className="MinBalance__table__total">
             <td className="MinBalance__table__type">

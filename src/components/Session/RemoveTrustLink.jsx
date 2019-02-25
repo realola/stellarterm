@@ -19,7 +19,9 @@ export default class RemoveTrustLink extends React.Component {
     handleRemoveTrust(e) {
         e.preventDefault();
         this.props.d.session.handlers
+        // todo: destruct this.props.balance
             .removeTrust(this.props.balance.code, this.props.balance.issuer)
+            // todo: destruct bssResult, revert condition
             .then((bssResult) => {
                 if (bssResult.status === 'finish') {
                     this.setState({ status: 'pending' });
@@ -39,6 +41,7 @@ export default class RemoveTrustLink extends React.Component {
     }
 
     render() {
+        // todo: destruct props.balance
         const balance = this.props.balance;
         const status = this.state.status;
         const balanceIsZero = balance.balance === '0.0000000';

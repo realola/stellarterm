@@ -14,6 +14,7 @@ export default class Session extends React.Component {
         this.listenId = this.props.d.session.event.listen(() => {
             this.forceUpdate();
         });
+        // todo: do we need mounted property?
         this.mounted = true;
     }
 
@@ -24,6 +25,7 @@ export default class Session extends React.Component {
 
     render() {
         const { d, urlParts } = this.props;
+        // todo: destruct d.session (unfundedAccountId, state, inflationDone)
         const state = d.session.state;
 
         switch (state) {

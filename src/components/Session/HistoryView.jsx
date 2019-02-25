@@ -31,6 +31,7 @@ export default class HistoryView extends React.Component {
     }
 
     getFilterButtons() {
+        // todo: write onClick handler in one line. Try to improve className logic?
         return (
             <div className="s-buttonGroup HistoryView__header__right__buttonGroup">
                 <button
