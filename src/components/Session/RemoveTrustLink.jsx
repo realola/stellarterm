@@ -7,43 +7,36 @@ export default class RemoveTrustLink extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            status: 'ready', // Can be: ready, pending, or error
+            status: 'ready', // Can be: ready, pending, error
         };
-
-        // TODO: If we successfully remove trust, then React gets unhappy because this element disappears
-        // Warning: Can only update a mounted or mounting component. This usually means you called setState,
-        // replaceState, or forceUpdate on an unmounted component.This is a no - op.
-        // Please check the code for the BalancesTable component.
     }
 
     handleRemoveTrust(e) {
         e.preventDefault();
-        this.props.d.session.handlers
-        // todo: destruct this.props.balance
-            .removeTrust(this.props.balance.code, this.props.balance.issuer)
-            // todo: destruct bssResult, revert condition
-            .then((bssResult) => {
-                if (bssResult.status === 'finish') {
-                    this.setState({ status: 'pending' });
-                    return bssResult.serverResult
-                        .then((res) => {
-                            console.log('Successfully removed trust', res);
-                        })
-                        .catch((err) => {
-                            console.log('Errored when removing trust', err);
-                            this.setState({
-                                status: 'error',
-                            });
-                        });
-                }
-                return null;
-            });
+        const { code, issuer } = this.props.balance;
+
+        this.props.d.session.handlers.removeTrust(code, issuer).then((bssResult) => {
+            const { status, serverResult } = bssResult;
+
+            if (status !== 'finish') { return null; }
+
+            this.setState({ status: 'pending' });
+            return serverResult
+                .then((res) => {
+                    console.log('Successfully removed trust', res);
+                })
+                .catch((err) => {
+                    console.log('Errored when removing trust', err);
+                    this.setState({
+                        status: 'error',
+                    });
+                });
+        });
     }
 
     render() {
-        // todo: destruct props.balance
-        const balance = this.props.balance;
-        const status = this.state.status;
+        const { balance } = this.props;
+        const { status } = this.state;
         const balanceIsZero = balance.balance === '0.0000000';
 
         if (!balanceIsZero) {
