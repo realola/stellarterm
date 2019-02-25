@@ -31,38 +31,25 @@ export default class HistoryView extends React.Component {
     }
 
     getFilterButtons() {
-        // todo: write onClick handler in one line. Try to improve className logic?
         return (
             <div className="s-buttonGroup HistoryView__header__right__buttonGroup">
-                <button
-                    className={`s-button s-button--light${this.state.trade ? ' is-active' : ''}`}
-                    onClick={() => {
-                        this.updateFilter('trade');
-                    }}>
-                    Trade
-                </button>
-                <button
-                    className={`s-button s-button--light${this.state.account ? ' is-active' : ''}`}
-                    onClick={() => {
-                        this.updateFilter('account');
-                    }}>
-                    Account
-                </button>
-                <button
-                    className={`s-button s-button--light${this.state.signer ? ' is-active' : ''}`}
-                    onClick={() => {
-                        this.updateFilter('signer');
-                    }}>
-                    Signer
-                </button>
-                <button
-                    className={`s-button s-button--light${this.state.trustline ? ' is-active' : ''}`}
-                    onClick={() => {
-                        this.updateFilter('trustline');
-                    }}>
-                    Trustline
-                </button>
+                {this.createFilterButton(this.state.trade, 'trade')}
+                {this.createFilterButton(this.state.account, 'account')}
+                {this.createFilterButton(this.state.signer, 'signer')}
+                {this.createFilterButton(this.state.trustline, 'trustline')}
             </div>
+        );
+    }
+
+    createFilterButton(filterType, text) {
+        const filterIsActive = filterType ? ' is-active' : '';
+
+        return (
+            <button
+                className={`s-button s-button--light text__capitalize${filterIsActive}`}
+                onClick={() => { this.updateFilter(`${text}`); }}>
+                {text}
+            </button>
         );
     }
 
