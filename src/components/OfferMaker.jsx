@@ -6,6 +6,22 @@ import OfferMakerOverview from './OfferMakerOverview';
 
 // OfferMaker is an uncontrolled element (from the perspective of its users)
 export default class OfferMaker extends React.Component {
+    static getErrorType(error) {
+        if (!error.data) {
+            return `clientError - ${error.message}`;
+        }
+        if (!error.data.extras) {
+            return `unknownResponse - ${error.message}`;
+        }
+        if (!error.data.extras.result_codes.operations) {
+            return error.data.extras.result_codes.transaction;
+        }
+        // Common errors:
+        // return 'buy_not_authorized'
+        // return 'op_low_reserve'
+        return error.data.extras.result_codes.operations[0];
+    }
+
     constructor(props) {
         super(props);
         this.initialized = false;
@@ -100,63 +116,38 @@ export default class OfferMaker extends React.Component {
         this.setState(state);
     }
 
-    handleSubmit(e, props) {
-        // TODO: Hook up with driver
-        e.preventDefault();
-        props.d.session.handlers
-            .createOffer(props.side, {
-                price: this.state.price,
-                amount: this.state.amount,
-                total: this.state.total,
-            })
-            .then((signAndSubmitResult) => {
-                if (signAndSubmitResult.status === 'finish') {
-                    this.setState({
-                        valid: false,
-                        buttonState: 'pending',
-                        amount: '',
-                        total: '',
-                        successMessage: '',
-                        errorMessage: false,
-                    });
+    async handleSubmit(event) {
+        event.preventDefault();
 
-                    signAndSubmitResult.serverResult
-                        .then(() => {
-                            this.setState({
-                                buttonState: 'ready',
-                                successMessage: 'Offer successfully created',
-                            });
-                        })
-                        .catch((result) => {
-                            let errorType;
-                            try {
-                                if (result.data === undefined) {
-                                    errorType = `clientError - ${result.message}`;
-                                } else if (result.data && result.data.extras) {
-                                    if (result.data.extras.result_codes.operations === undefined) {
-                                        errorType = result.data.extras.result_codes.transaction;
-                                    } else {
-                                        // Common errors:
-                                        // errorType = 'buy_not_authorized'
-                                        // errorType = 'op_low_reserve'
-                                        errorType = result.data.extras.result_codes.operations[0];
-                                    }
-                                } else {
-                                    errorType = `unknownResponse - ${e.message}`;
-                                }
-                            } catch (error) {
-                                console.error(error);
-                                errorType = `unknownResponse - ${e.message}`;
-                            }
+        const { price, amount, total } = this.state;
+        const handlers = this.props.d.session.handlers;
+        const signAndSubmit = await handlers.createOffer(this.props.side, { price, amount, total });
 
-                            this.setState({
-                                buttonState: 'ready',
-                                errorMessage: true,
-                                errorType,
-                            });
-                        });
-                }
+        if (signAndSubmit.status !== 'finish') { return; }
+
+        this.setState({
+            valid: false,
+            buttonState: 'pending',
+            amount: '',
+            total: '',
+            successMessage: '',
+            errorMessage: false,
+        });
+
+        try {
+            await signAndSubmit.serverResult;
+            this.setState({
+                buttonState: 'ready',
+                successMessage: 'Offer successfully created',
             });
+        } catch (error) {
+            const errorType = this.constructor.getErrorType(error);
+            this.setState({
+                buttonState: 'ready',
+                errorMessage: true,
+                errorType,
+            });
+        }
     }
 
     renderTableRow(inputType, assetName) {
@@ -193,7 +184,7 @@ export default class OfferMaker extends React.Component {
         return (
             <div>
                 <h3 className="island__sub__division__title island__sub__division__title--left">{title}</h3>
-                <form onSubmit={e => this.handleSubmit(e, this.props)}>
+                <form onSubmit={e => this.handleSubmit(e)}>
                     <table className="OfferMaker__table">
                         <tbody>
                             {this.renderTableRow('price', counterAssetName)}

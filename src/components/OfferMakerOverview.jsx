@@ -54,7 +54,7 @@ export default class OfferMakerOverview extends React.Component {
                     {targetAsset.isNative() ?
                         (<span>You may trade up to {maxOfferView} XLM (due to <a href="#account">
                          minimum balance requirements</a>.)</span>) :
-                      (<span>You have {maxOfferView} {targetAsset.getCode()}</span>)
+                        (<span>You have {maxOfferView} {targetAsset.getCode()}</span>)
                     }
                 </div>
             );
@@ -133,6 +133,13 @@ export default class OfferMakerOverview extends React.Component {
                 error = (
                     <div className="s-alert s-alert--alert OfferMaker__message">
                         Transaction failed because sequence got out of sync. Please reload StellarTerm and try again.
+                    </div>
+                );
+                break;
+            case 'op_underfunded':
+                error = (
+                    <div className="s-alert s-alert--alert OfferMaker__message">
+                        Transaction failed due to a lack of funds.
                     </div>
                 );
                 break;
