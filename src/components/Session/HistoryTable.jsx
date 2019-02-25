@@ -9,56 +9,69 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import HistoryTableRow from './HistoryTableRow';
 import Loading from '../Loading';
-// todo: refactor lib/Format
+import Ellipsis from '../Ellipsis';
 import { niceDate } from '../../lib/Format';
 import Driver from '../../lib/Driver';
 
 export default class HistoryTable extends React.Component {
-    render() {
+    getHistoryRows() {
         const spoonHistory = this.props.d.history.spoonHistory;
-        // todo: isNoHistory --> historyNotLoaded
-        const isNoHistory = spoonHistory === null;
+        const historyRows = [];
 
-        if (isNoHistory) {
-            return <Loading size="large">Loading transaction history...</Loading>;
-        }
-
-        const totalRecords = spoonHistory.records.length;
-        let loadedRecords = 0;
-
-        // todo: move getting historyRows() to separate method, get rid of loadedRecords
-        const historyRows = spoonHistory.records.map((record) => {
+        spoonHistory.records.map((record) => {
             const details = spoonHistory.details[record.id];
-            // todo: improve filters check
-            const detailsIsUndefined = details === undefined || !this.props.filters[record.type.split('_')[0]];
-            // todo: linter fix
-            if (detailsIsUndefined) return null;
 
-            const effectType = details.category.split('_')[0];
-            // todo: destruct niceDateObj
-            const niceDateObj = niceDate(details.created_at);
-            loadedRecords += 1;
+            const detailsIsUndefined = details === undefined;
+            const allFiltersDisabled = !this.props.filters[record.type.split('_')[0]];
 
-            return (
+            const nothingToDisplay = detailsIsUndefined || allFiltersDisabled;
+            if (nothingToDisplay) { return null; }
+
+            const operationType = details.category.split('_')[0];
+            const { date, time, timezone } = niceDate(details.created_at);
+
+            historyRows.push(
                 <tr className="HistoryTable__row" key={details.id}>
                     <td className="HistoryTable__row__item--description">
-                        <HistoryTableRow type={effectType} data={details} />
+                        <HistoryTableRow type={operationType} data={details} />
                     </td>
+
                     <td className="HistoryTable__row__item--date">
                         <div className="DateCard">
                             <div className="DateCard__date">
-                                {niceDateObj.date}
+                                {date}
                                 <br />
-                                {niceDateObj.time}
+                                {time}
                                 <br />
-                                {niceDateObj.timezone}
+                                {timezone}
                             </div>
                             <div className="DateCard__ledger">Ledger #{details.ledger_attr}</div>
                         </div>
                     </td>
-                </tr>
+                </tr>,
             );
+            return null;
         });
+
+        return historyRows;
+    }
+
+    render() {
+        const spoonHistory = this.props.d.history.spoonHistory;
+        const historyNotLoaded = spoonHistory === null;
+
+        if (historyNotLoaded) {
+            return (
+                <Loading size="large">
+                    Loading transaction history
+                    <Ellipsis />
+                </Loading>
+            );
+        }
+
+        const historyRows = this.getHistoryRows(spoonHistory);
+        const totalRecords = spoonHistory.records.length;
+        const loadedRecords = historyRows.length;
 
         return (
             <table className="HistoryTable">
@@ -74,7 +87,7 @@ export default class HistoryTable extends React.Component {
 
                     <tr className="HistoryTable__row HistoryTable__row__loading" key={'loading'}>
                         <td>
-                            Loading ({loadedRecords}/{totalRecords})
+                            Loaded ({loadedRecords}/{totalRecords})
                         </td>
                     </tr>
                 </tbody>
