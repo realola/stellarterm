@@ -7,27 +7,17 @@ import MinBalanceDescription from './MinBalanceDescription';
 export default function MinBalance(props) {
     const explanation = props.d.session.account.explainReserve();
 
-    // todo: destruct item, use entryType as key
-    const minBalanceRows = _.map(explanation.items, (item, index) => (
-        <tr key={index}>
-            <td className="MinBalance__table__type">{item.entryType}</td>
-            <td>{item.amount}</td>
-            <td className="MinBalance__table__lumens">{item.XLM}</td>
-        </tr>
-    ));
+    const minBalanceRows = _.map(explanation.items, (item) => {
+        const { entryType, amount, XLM } = item;
 
-    // todo: move to return?
-    minBalanceRows.push(
-        <tr key={-1} className="MinBalance__table__total">
-            <td className="MinBalance__table__type">
-                <strong>Total</strong>
-            </td>
-            <td />
-            <td className="MinBalance__table__lumens">
-                <strong>{explanation.totalLumens}</strong>
-            </td>
-        </tr>,
-    );
+        return (
+            <tr key={entryType}>
+                <td className="MinBalance__table__type">{entryType}</td>
+                <td>{amount}</td>
+                <td className="MinBalance__table__lumens">{XLM}</td>
+            </tr>
+        );
+    });
 
     return (
         <div>
@@ -44,7 +34,19 @@ export default function MinBalance(props) {
                             </tr>
                         </thead>
 
-                        <tbody>{minBalanceRows}</tbody>
+                        <tbody>
+                            {minBalanceRows}
+
+                            <tr key={-1} className="MinBalance__table__total">
+                                <td className="MinBalance__table__type">
+                                    <strong>Total</strong>
+                                </td>
+                                <td />
+                                <td className="MinBalance__table__lumens">
+                                    <strong>{explanation.totalLumens}</strong>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
