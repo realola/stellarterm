@@ -11,12 +11,11 @@ import SessionAccountView from './SessionAccountView';
 import SessionAddTrust from './SessionAddTrust';
 
 export default function SessionPageContent(props) {
+    const routePath = props.route;
     const d = props.d;
-    // todo: change in props: urlParts[1] --> route
-    const urlActionPart = props.urlParts[1];
     let content;
 
-    switch (urlActionPart) {
+    switch (routePath) {
     case undefined:
         content = <SessionAccountView d={d} />;
         break;
@@ -57,16 +56,15 @@ export default function SessionPageContent(props) {
         break;
     }
 
-    // todo: can we change div to parts?
     return (
-        <div>
+        <React.Fragment>
             <SessionAccountMenu d={d} />
             {content}
-        </div>
+        </React.Fragment>
     );
 }
 
 SessionPageContent.propTypes = {
     d: PropTypes.instanceOf(Driver).isRequired,
-    urlParts: PropTypes.arrayOf(PropTypes.string),
+    route: PropTypes.string,
 };

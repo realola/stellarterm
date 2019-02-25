@@ -14,32 +14,28 @@ export default class Session extends React.Component {
         this.listenId = this.props.d.session.event.listen(() => {
             this.forceUpdate();
         });
-        // todo: do we need mounted property?
-        this.mounted = true;
     }
 
     componentWillUnmount() {
-        this.mounted = false;
         this.props.d.session.event.unlisten(this.listenId);
     }
 
     render() {
         const { d, urlParts } = this.props;
-        // todo: destruct d.session (unfundedAccountId, state, inflationDone)
-        const state = d.session.state;
+        const { state, unfundedAccountId, inflationDone } = d.session;
 
         switch (state) {
         case 'out':
             return <LoginPage d={d} urlParts={urlParts} />;
         case 'unfunded':
-            return <SessionActivateAccount unfundedAccountId={d.session.unfundedAccountId} />;
+            return <SessionActivateAccount unfundedAccountId={unfundedAccountId} />;
         case 'loading':
             return <SessionLoading />;
         case 'in':
-            if (!d.session.inflationDone) {
+            if (!inflationDone) {
                 return <SessionWelcome d={d} />;
             }
-            return <SessionPageContent d={d} urlParts={urlParts} />;
+            return <SessionPageContent d={d} route={urlParts[1]} />;
         default:
             break;
         }

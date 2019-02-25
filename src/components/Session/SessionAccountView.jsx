@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import Generic from '../Generic';
 import ErrorBoundary from '../ErrorBoundary';
 import AccountView from '../Session/AccountView';
-// todo: refactor clickToSelect
 import clickToSelect from '../../lib/clickToSelect';
 import Driver from '../../lib/Driver';
 
