@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import TrustButton from './Session/TrustButton';
 import Driver from '../lib/Driver';
+import Printify from '../lib/Printify';
 
 export default class OfferMakerOverview extends React.Component {
     static capDigits(input) {
@@ -47,13 +48,13 @@ export default class OfferMakerOverview extends React.Component {
             const reservedBalance = this.props.d.session.account.getReservedBalance(targetAsset);
             const maxOffer = (parseFloat(targetBalance) > parseFloat(reservedBalance)) ?
                 targetBalance - reservedBalance : 0;
-
+            const maxOfferView = Printify.lightenZeros(maxOffer.toString(), 7);
             youHave = (
                 <div className="OfferMaker__youHave">
                     {targetAsset.isNative() ?
-                        (<span>You may trade up to {maxOffer} XLM (due to <a href="#account">
+                        (<span>You may trade up to {maxOfferView} XLM (due to <a href="#account">
                          minimum balance requirements</a>.)</span>) :
-                        (`You have ${maxOffer} ${targetAsset.getCode()}`)
+                      (<span>You have {maxOfferView} {targetAsset.getCode()}</span>)
                     }
                 </div>
             );
