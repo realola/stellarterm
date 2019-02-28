@@ -1,6 +1,3 @@
-.Session__inflation {
-
-}
 .Session__welcomeTitle {
   margin-bottom: 12px;
 }
@@ -18,15 +15,14 @@
   position: relative;
 }
 .Session__inflation__next__noThanks:after {
-  content: '';
+  content: "";
   display: block;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  border-bottom: 1px dotted rgba(0,0,0,0.5);
+  border-bottom: 1px dotted rgba(0, 0, 0, 0.5);
 }
-
 
 .Session__tos__next {
   display: flex;
@@ -46,4 +42,29 @@
 .Sesssion__yourId__accountId {
   margin-bottom: 0;
   font-size: $s-scale-1;
+}
+
+.Session__Account__text {
+  padding: 0px 20px;
+}
+
+.Session__federations__block {
+  border-top: 1px solid #ddd;
+  position: relative;
+  width: 980px;
+  left: calc(-18px);
+  padding: 20px 16px;
+  padding-bottom: 0px;
+}
+
+.Session__federations__alert {
+  display: flex;
+  justify-content: space-between;
+  line-height: 60px;
+}
+
+.Session__federations__button {
+  padding: 0.3333em 2em 0.3333em 2em;
+  border-radius: 2px;
+  font-weight: normal;
 }
