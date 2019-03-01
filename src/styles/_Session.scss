@@ -68,3 +68,22 @@
   border-radius: 2px;
   font-weight: normal;
 }
+
+.federation-icon {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+}
+
+.federation-warning {
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.federations-warning-text {
+  height: 24px;
+  line-height: 24px;
+  vertical-align: middle;
+  color: #e33c4c;
+  font-weight: normal;
+}
