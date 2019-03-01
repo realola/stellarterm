@@ -1,33 +1,3 @@
-/*
-  This file contains the Effect Card Component.
-  It deals with each effect with a nested switch
-  statement. This nested switch statement is
-  formated as so:
-
-  outside switch: general category (account, signer, trade, trustline)
-
-  inside switch: per category (ie for account have a switch for
-                               home domain update, thresholds update, etc.)
-
-  The reasoning behind this design is modularity. If, in the future,
-  another effect is added, it simply requires adding another case to
-  the switch statement.
-
-  Each case returns an object with the following properties that are then
-  placed within a template that is returned and exported:
-
-  1) title: the title of the action, ex: Account Created
-  2) attributes: an array of attribute objects related to the effect
-    a. header: the attribute label, ex: "STARTING BALANCE: "
-    b. value: the attribute value, ex: "2828.292929200"
-    c. isAsset(optional): Speficies if the attribute represents an asset.
-                          This is used for special formatting within the
-                          template including the hover property which is
-                          used to show asset cards.
-    data. asset_code(optional)
-    e. asset_issuer(optional)
-    f. domain(optional)
-*/
 import React from 'react';
 import PropTypes from 'prop-types';
 import AssetCard2 from '../../../../../AssetCard2';
@@ -50,7 +20,7 @@ export default class HistoryTableRow extends React.Component {
         const { data, type } = this.props;
         const { category } = data;
         const dataType = checkDataType(type, category);
-        const historyRows = dataType ? getHistoryRowsData(type, data) : [];
+        const historyRows = dataType ? getHistoryRowsData(dataType, data) : [];
 
         const history = historyRows.attributes.map((row) => {
             const {

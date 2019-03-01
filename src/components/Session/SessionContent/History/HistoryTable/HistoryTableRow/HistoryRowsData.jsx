@@ -1,6 +1,23 @@
 import Printify from '../../../../../../lib/Printify';
 import directory from '../../../../../../../directory';
+/*
+  4 general categories (DATA_TYPES) (account, signer, trade, trustline)
 
+  Each func returns an object with the following properties that are then
+  placed within a template that is returned and exported:
+
+   1) title: the title of the action, ex: Account Created
+   2) attributes: an array of attribute objects related to the effect
+    a. header: the attribute label, ex: "STARTING BALANCE: "
+    b. value: the attribute value, ex: "2828.292929200"
+    c. isAsset(optional): Speficies if the attribute represents an asset.
+                          This is used for special formatting within the
+                          template including the hover property which is
+                          used to show asset cards.
+    data. asset_code(optional)
+    e. asset_issuer(optional)
+    f. domain(optional)
+*/
 const DATA_TYPES = ['account', 'signer', 'trade', 'trustline'];
 const ACCOUNT_CATEGORIES = [
     'account_created', 'account_inflation_destination_updated', 'account_home_domain_updated',
