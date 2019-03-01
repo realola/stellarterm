@@ -15,6 +15,7 @@ export default class SendDest extends React.Component {
         if (stepIsPassed) {
             return this.stepPassedContent();
         } else if (isCurrentStep) {
+            // todo: revert
             let memoReady = true;
             let memoValidationMessage;
 
@@ -68,6 +69,7 @@ export default class SendDest extends React.Component {
 
     render() {
         const { d, isCurrentStep, stepIsPassed } = this.props;
+        // todo: ?
         const { step1Edit } = d.send.handlers;
         const stepContent = this.getStepContent();
 

@@ -13,6 +13,7 @@ export default class SendAmount extends React.Component {
         if (stepIsPassed) {
             return this.stepPassedContent();
         } else if (isCurrentStep) {
+            // todo: revert
             const { asset } = d.send.step2.availability;
             const { account } = d.session;
             const maxLumenSpend = account.maxLumenSpend();

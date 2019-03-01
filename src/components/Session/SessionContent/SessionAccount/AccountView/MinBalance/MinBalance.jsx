@@ -8,6 +8,7 @@ export default function MinBalance(props) {
     const explanation = props.d.session.account.explainReserve();
 
     const minBalanceRows = _.map(explanation.items, (item) => {
+        // todo: you can destruct item already in argument ({...})
         const { entryType, amount, XLM } = item;
 
         return (

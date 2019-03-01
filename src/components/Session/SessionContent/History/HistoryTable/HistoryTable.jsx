@@ -18,10 +18,13 @@ export default class HistoryTable extends React.Component {
         const spoonHistory = this.props.d.history.spoonHistory;
         const historyRows = [];
 
+        // todo: Why you don't simply return mapped array?
         spoonHistory.records.map((record) => {
             const details = spoonHistory.details[record.id];
 
             const detailsIsUndefined = details === undefined;
+            // todo: Maybe here must be isFilterDisabled? And I think it would be better
+            //  to separate record.type.split('_')[0] and filter method
             const allFiltersDisabled = !this.props.filters[record.type.split('_')[0]];
 
             const nothingToDisplay = detailsIsUndefined || allFiltersDisabled;

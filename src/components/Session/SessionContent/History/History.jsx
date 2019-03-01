@@ -41,6 +41,7 @@ export default class History extends React.Component {
         );
     }
 
+    // todo: rename args
     createFilterButton(filterType, text) {
         const filterIsActive = filterType ? ' is-active' : '';
 
